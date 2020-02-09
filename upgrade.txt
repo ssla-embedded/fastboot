@@ -211,10 +211,7 @@ fi
 fi
 
 if itest.s "x" == "x${reset}" ; then
-	while echo "---- U-Boot upgraded. Please reset the board" ; do
-		sleep 120
-	done
+	ext4write mmc 0:1 0x40200000 /upgraded 0
+	echo "---- U-Boot upgraded. The board will reset"
 fi
-sleep 1
-reset
 done

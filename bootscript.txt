@@ -1,11 +1,20 @@
+if ext4load mmc 0:1 0x40480000 upgraded ; then
+	echo "No need for bootloader upgrade"
+else
+	run upgradeu
+	reset
+fi
+
 setenv distro_bootpart 1
 
 setexpr rval *0x30370068 \& 0x180
 if itest.s "x$rval" -eq "x100"; then
 	echo "Starting fastboot..."
+	mw.l 0x30370068 0 1
 	fastboot 0
 else
 	if itest.s "x$rval" -eq "x80"; then
+		mw.l 0x30370068 0 1
 		setenv distro_bootpart 2;
 	fi
 fi
