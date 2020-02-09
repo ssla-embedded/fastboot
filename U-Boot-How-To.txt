@@ -1,0 +1,65 @@
+Build:
+
+	export ARCH=arm64
+	export CROSS_COMPILE=aarch64-linux-gnu-
+
+	make nitrogen8mm_2g_defconfig
+	make -j8
+	make flash.bin -j8
+
+Copy the following built files to a proper directory (/home/nick/Desktop/shared/):
+	u-boot.bin
+	bl31-iMX8MM.bin
+	flash.bin
+
+You may also just download these files from boundary devices and skip the building part,
+or you may use binaries built by Android. It's even possible to make a combination
+of these 3 files, which originate from different sources (e.g. prebuilt u-boot.bin and bl31-iMX8MM.bin & self built flash.bin).
+
+
+Android u-boot build paths (in case that you want to use these):
+	u-boot.bin -> out_dir: u-boot.imx
+	flash.bin -> out_dir: boot/u-boot.nitrogen8mm_2g
+	bl31-iMX8MM.bin -> vendor/boundary/uboot-imx/bl31-iMX8MM.bin
+
+IMX_USB tool:
+
+Get the tool:
+	git clone https://github.com/boundarydevices/imx_usb_loader
+	make -j8
+
+Config:
+
+Ensure that these config files point to the right files.
+
+cat mx8mm_usb_sdp_spl.conf:
+	mx8mm_spl_sdp
+	#hid/bulk,[old_header,]max packet size, {ram start, ram size}(repeat valid ram areas)
+	#In SPL, we typically load u-boot.img which has a U-boot header...
+	hid,1024,0x910000,0x40000000,1G,0x00900000,0x40000
+
+	#0x60000 - 0x8400 = 0x57c00, +0x3000=5ac00 (FIT image)
+	#../u-boot-imx6/u-boot.bin:load 0x40200000
+	#../u-boot-imx6/bl31-iMX8MM.bin:load 0x00920000,jump 0x920000
+	/home/nick/Desktop/shared/u-boot.bin:load 0x40200000
+	/home/nick/Desktop/shared/bl31-iMX8MM.bin:load 0x00920000,jump 0x920000
+
+cat mx8mm_usb_work.conf:
+	mx8mm_qsb
+	#hid/bulk,[old_header,]max packet size, dcd_addr, {ram start, ram size}(repeat valid ram areas)
+	hid,1024,0x910000,0x40000000,1G,0x00900000,0x40000
+	#load/run SPL
+	#../u-boot-imx6/flash.bin:dcd,clear_dcd,plug,jump header
+	/home/nick/Desktop/shared/flash.bin:dcd,clear_dcd,plug,jump header
+
+Flashing:
+	Set the board boot switch to ON position, attach USB OTG and connect it to your computer.
+	Power on the board
+	Call ./imx_usb
+	Once more call ./imx_usb
+	Power off the board
+	Set the board boot switch to OFF position
+	Power on the board
+
+Reference links:
+	https://boundarydevices.com/unbricking-nitrogen6x-sabre-lite-i-mx6-board/
