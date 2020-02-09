@@ -12,6 +12,7 @@ fi
 mw.l 0x30370068 0 1
 
 setenv bootargs ''
+setenv soc imx8mm
 
 m4=''
 if itest.s "x1" == "x$m4enabled" ; then
