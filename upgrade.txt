@@ -60,6 +60,7 @@ mmc dev ${env_dev} ${env_part}
 mmc read ${a_uImage2} ${cntoffset} ${cntfile}
 if cmp.b ${a_uImage1} ${a_uImage2} ${filesize} ; then
 	echo "------- U-Boot versions match" ;
+	ext4write mmc 0:1 0x40200000 /upgraded 0
 	exit ;
 fi
 
